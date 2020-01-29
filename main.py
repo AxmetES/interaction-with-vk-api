@@ -21,7 +21,6 @@ def get_data(url):
     response = requests.get(url=url)
     response.raise_for_status()
     image_data = response.json()
-    print(image_data)
     return image_data
 
 
@@ -83,6 +82,21 @@ def get_hash_data(upload_data):
     return hash_data
 
 
+def get_id_owner_id(server_data):
+    media_id = 0
+    owner_id = 0
+    for item in server_data['response']:
+        media_id = item['id']
+        owner_id = item['owner_id']
+    return media_id, owner_id
+
+
+def post_wall(vk_wall_post_api, vk_wall_post_params):
+    response = requests.post(vk_wall_post_api, vk_wall_post_params)
+    post_id = response.json()
+    print(post_id)
+
+
 def main():
     load_dotenv(verbose=True)
     client_id = os.getenv('CLIENT_ID')
@@ -113,6 +127,12 @@ def main():
     vk_save_params = {'access_token': vk_access_token, 'photo': photo_data, 'server': server_data,
                       'hash': hash_data, 'v': 5.103}
     server_data = save_image_to_group(vk_save_image_api, vk_save_params)
+    media_id, owner_id = get_id_owner_id(server_data)
+
+    vk_wall_post_api = 'https://api.vk.com/method/wall.post'
+    vk_wall_post_params = {'access_token': vk_access_token, 'owner_id': group_id, 'from_group': 1,
+                           'message': description, 'attachments': f'photo{owner_id}_{media_id}', 'v': 5.103}
+    post_wall(vk_wall_post_api, vk_wall_post_params)
 
 
 if __name__ == '__main__':
