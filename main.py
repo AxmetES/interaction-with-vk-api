@@ -8,12 +8,11 @@ def make_directory(directory):
     os.makedirs(directory, exist_ok=True)
 
 
-def get_image(image_link, filename, directory):
-    full_filename = directory + filename
+def get_image(image_link, full_name):
     response = requests.get(image_link)
     response.raise_for_status()
 
-    with open(full_filename, 'wb') as file:
+    with open(full_name, 'wb') as file:
         file.write(response.content)
 
 
@@ -46,10 +45,8 @@ def get_upload_url(vk_get_groups_url, vk_get_group_params):
     return upload_url
 
 
-def upload_image_to_group(upload_url, filename, directory):
-    full_file = directory + filename
-
-    with open(full_file, 'rb') as file:
+def upload_image_to_group(upload_url, full_name):
+    with open(full_name, 'rb') as file:
         files = {'photo': file}
         response = requests.post(upload_url, files=files)
         response.raise_for_status()
@@ -93,8 +90,7 @@ def post_wall(vk_wall_post_api, vk_wall_post_params):
     response.raise_for_status()
 
 
-def remove_image(filename, directory):
-    full_name = directory + filename
+def remove_image(full_name):
     os.remove(full_name)
 
 
@@ -108,7 +104,7 @@ def main():
     load_dotenv(verbose=True)
     group_id = os.getenv('GROUP_ID')
     vk_access_token = os.getenv('ACCESS_TOKEN')
-    directory = 'image/'
+    directory = 'image'
 
     make_directory(directory)
 
@@ -122,13 +118,14 @@ def main():
     image_link = get_image_link(image_response)
 
     filename = get_filename(image_link)
-    get_image(image_link, filename, directory)
+    full_name = os.path.join(directory, filename)
+    get_image(image_link, full_name)
 
     vk_uploader_api = 'https://api.vk.com/method/photos.getWallUploadServer'
     vk_uploader_params = {'access_token': vk_access_token, 'caption': image_title, 'v': 5.103}
     uploader_url = get_upload_url(vk_uploader_api, vk_uploader_params)
 
-    uploader_response = upload_image_to_group(uploader_url, filename, directory)
+    uploader_response = upload_image_to_group(uploader_url, full_name)
     server_response = get_server_data(uploader_response)
     photo_response = get_photo_data(uploader_response)
     hash_response = get_hash_data(uploader_response)
@@ -143,7 +140,7 @@ def main():
     vk_wall_params = {'access_token': vk_access_token, 'owner_id': group_id, 'from_group': 1,
                       'message': image_title, 'attachments': f'photo{owner_id}_{media_id}', 'v': 5.103}
     post_wall(vk_wall_api, vk_wall_params)
-    remove_image(filename, directory)
+    remove_image(full_name)
 
 
 if __name__ == '__main__':
