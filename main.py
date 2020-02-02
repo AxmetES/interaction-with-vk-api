@@ -17,11 +17,11 @@ def get_image(image_link, filename, directory):
         file.write(response.content)
 
 
-def get_image_data(url):
+def get_image_response(url):
     response = requests.get(url=url)
     response.raise_for_status()
-    image_data = response.json()
-    return image_data
+    image_response = response.json()
+    return image_response
 
 
 def get_filename(image_link):
@@ -60,31 +60,31 @@ def upload_image_to_group(upload_url, filename, directory):
 def save_image_to_group(vk_save_image_api, vk_save_params):
     response = requests.post(url=vk_save_image_api, params=vk_save_params)
     response.raise_for_status()
-    server_data = response.json()
-    return server_data
+    server_response = response.json()
+    return server_response
 
 
 def get_server_data(upload_data):
-    server_data = upload_data['server']
-    return server_data
+    server = upload_data['server']
+    return server
 
 
 def get_photo_data(upload_data):
-    photo_data = upload_data['photo']
-    return photo_data
+    photo = upload_data['photo']
+    return photo
 
 
 def get_hash_data(upload_data):
-    hash_data = upload_data['hash']
-    return hash_data
+    hash_numb = upload_data['hash']
+    return hash_numb
 
 
-def get_id_owner_id(server_data):
+def get_id_owner_id(server_response):
     media_id = None
     owner_id = None
-    for item in server_data['response']:
-        media_id = item['id']
-        owner_id = item['owner_id']
+    for response in server_response['response']:
+        media_id = response['id']
+        owner_id = response['owner_id']
     return media_id, owner_id
 
 
@@ -108,9 +108,9 @@ def main():
 
     numb = randint(1, 2261)
     image_url = f'http://xkcd.com/{numb}/info.0.json'
-    image_data = get_image_data(image_url)
-    image_title = get_image_title(image_data)
-    image_link = get_image_link(image_data)
+    image_response = get_image_response(image_url)
+    image_title = get_image_title(image_response)
+    image_link = get_image_link(image_response)
 
     filename = get_filename(image_link)
     get_image(image_link, filename, directory)
@@ -119,14 +119,14 @@ def main():
     vk_uploader_params = {'access_token': vk_access_token, 'caption': image_title, 'v': 5.103}
     uploader_url = get_upload_url(vk_uploader_api, vk_uploader_params)
 
-    uploader_data = upload_image_to_group(uploader_url, filename, directory)
-    server_data = get_server_data(uploader_data)
-    photo_data = get_photo_data(uploader_data)
-    hash_data = get_hash_data(uploader_data)
+    uploader_response = upload_image_to_group(uploader_url, filename, directory)
+    server_response = get_server_data(uploader_response)
+    photo_response = get_photo_data(uploader_response)
+    hash_response = get_hash_data(uploader_response)
 
     vk_saver_api = 'https://api.vk.com/method/photos.saveWallPhoto'
-    vk_saver_params = {'access_token': vk_access_token, 'photo': photo_data, 'server': server_data,
-                       'hash': hash_data, 'v': 5.103}
+    vk_saver_params = {'access_token': vk_access_token, 'photo': photo_response, 'server': server_response,
+                       'hash': hash_response, 'v': 5.103}
     server_data = save_image_to_group(vk_saver_api, vk_saver_params)
     media_id, owner_id = get_id_owner_id(server_data)
 
