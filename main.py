@@ -98,6 +98,12 @@ def remove_image(filename, directory):
     os.remove(full_name)
 
 
+def get_image_num(numb_url):
+    response = requests.get(numb_url)
+    image_numb = response.json()['num']
+    return image_numb
+
+
 def main():
     load_dotenv(verbose=True)
     group_id = os.getenv('GROUP_ID')
@@ -106,7 +112,10 @@ def main():
 
     make_directory(directory)
 
-    numb = randint(1, 2261)
+    numb_url = f'http://xkcd.com/info.0.json'
+    image_numb = get_image_num(numb_url)
+    numb = randint(1, image_numb)
+
     image_url = f'http://xkcd.com/{numb}/info.0.json'
     image_response = get_image_response(image_url)
     image_title = get_image_title(image_response)
