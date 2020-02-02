@@ -42,6 +42,8 @@ def get_upload_url(vk_get_groups_url, vk_get_group_params):
     response = requests.get(url=vk_get_groups_url, params=vk_get_group_params)
     response.raise_for_status()
     upload_url = response.json()['response']['upload_url']
+    if 'error' in upload_url:
+        raise requests.exceptions.HTTPError(upload_url['error'])
     return upload_url
 
 
@@ -51,6 +53,8 @@ def upload_image_to_group(upload_url, full_name):
         response = requests.post(upload_url, files=files)
         response.raise_for_status()
         server_result = response.json()
+        if 'error' in server_result:
+            raise requests.exceptions.HTTPError(server_result['error'])
     return server_result
 
 
@@ -58,6 +62,8 @@ def save_image_to_group(vk_save_image_api, vk_save_params):
     response = requests.post(url=vk_save_image_api, params=vk_save_params)
     response.raise_for_status()
     server_response = response.json()
+    if 'error' in server_response:
+        raise requests.exceptions.HTTPError(server_response['error'])
     return server_response
 
 
@@ -88,6 +94,9 @@ def get_id_owner_id(server_response):
 def post_wall(vk_wall_post_api, vk_wall_post_params):
     response = requests.post(vk_wall_post_api, vk_wall_post_params)
     response.raise_for_status()
+    post_id = response.json()
+    if 'error' in post_id:
+        raise requests.exceptions.HTTPError(post_id['error'])
 
 
 def remove_image(full_name):
