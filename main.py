@@ -91,7 +91,10 @@ def post_wall(vk_wall_post_api, vk_wall_post_params):
 
 
 def remove_image(full_name):
-    os.remove(full_name)
+    try:
+        os.remove(full_name)
+    except:
+        print('Error while deleting file', full_name)
 
 
 def get_image_num(numb_url):
@@ -126,6 +129,7 @@ def main():
     uploader_url = get_upload_url(vk_uploader_api, vk_uploader_params)
 
     uploader_response = upload_image_to_group(uploader_url, full_name)
+    remove_image(full_name)
     server_response = get_server_data(uploader_response)
     photo_response = get_photo_data(uploader_response)
     hash_response = get_hash_data(uploader_response)
@@ -140,7 +144,6 @@ def main():
     vk_wall_params = {'access_token': vk_access_token, 'owner_id': group_id, 'from_group': 1,
                       'message': image_title, 'attachments': f'photo{owner_id}_{media_id}', 'v': 5.103}
     post_wall(vk_wall_api, vk_wall_params)
-    remove_image(full_name)
 
 
 if __name__ == '__main__':
